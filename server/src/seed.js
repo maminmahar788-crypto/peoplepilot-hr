@@ -1,0 +1,13 @@
+import 'dotenv/config';
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import {User,Department,Employee} from './models.js';
+await mongoose.connect(process.env.MONGODB_URI||'mongodb://127.0.0.1:27017/hr_employee_management');
+await User.deleteMany({email:{$in:['admin@hr.local','hr@hr.local','employee@hr.local']}});
+await Employee.deleteMany({employeeCode:{$in:['EMP-001','EMP-002']}});
+await Department.deleteMany({name:{$in:['Human Resources','Engineering','Finance']}});
+const [hr,eng]=await Department.create([{name:'Human Resources',description:'People operations',manager:'Demo HR Manager'},{name:'Engineering',description:'Product and engineering',manager:'Demo Engineering Lead'},{name:'Finance',description:'Payroll and finance',manager:'Demo Finance Lead'}]);
+const e=await Employee.create({employeeCode:'EMP-001',name:'Demo Employee',email:'employee@hr.local',jobTitle:'Software Engineer',department:eng._id,joinDate:new Date('2024-01-15'),salary:120000,status:'Active',address:'Karachi, Pakistan'});
+const h=await Employee.create({employeeCode:'EMP-002',name:'Demo HR',email:'hr@hr.local',jobTitle:'HR Manager',department:hr._id,joinDate:new Date('2023-06-01'),salary:150000,status:'Active'});
+await User.create([{name:'Demo Admin',email:'admin@hr.local',passwordHash:await bcrypt.hash('Admin123!',10),role:'Admin'},{name:'Demo HR',email:'hr@hr.local',passwordHash:await bcrypt.hash('Hr123456!',10),role:'HR',employee:h._id},{name:'Demo Employee',email:'employee@hr.local',passwordHash:await bcrypt.hash('Emp123456!',10),role:'Employee',employee:e._id}]);
+console.log('Seed complete. Demo accounts created.');await mongoose.disconnect();
